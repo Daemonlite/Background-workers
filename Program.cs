@@ -13,9 +13,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 
+var GetConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(GetConnectionString));
 
 
 builder.Services.AddStackExchangeRedisCache(options =>

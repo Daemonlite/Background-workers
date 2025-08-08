@@ -9,10 +9,7 @@ using System.Threading.Tasks;
 namespace background_jobs.Services;
 
 // Inject IHttpClientFactory instead of creating a new HttpClient
-public class ExchangeRateUpdaterService(
-    ILogger<ExchangeRateUpdaterService> logger,
-    RedisCacheService cache,
-    IHttpClientFactory httpClientFactory) : BackgroundService
+public class ExchangeRateUpdaterService(ILogger<ExchangeRateUpdaterService> logger,RedisCacheService cache,IHttpClientFactory httpClientFactory) : BackgroundService
 {
     private readonly ILogger<ExchangeRateUpdaterService> _logger = logger;
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("CoinGecko"); // Create a client from the factory
@@ -81,7 +78,7 @@ public class ExchangeRateUpdaterService(
 
     private async Task UpdateFiatRatesAsync()
     {
-        var appId = Environment.GetEnvironmentVariable("OPEN_EXCHANGE_RATES_APP_ID");  
+        var appId = Environment.GetEnvironmentVariable("OPEN_EXCHANGE_RATES_APP_ID");
         if (string.IsNullOrEmpty(appId))
         {
             Console.WriteLine("OPEN_EXCHANGE_RATES_APP_ID environment variable is not set");
@@ -94,7 +91,7 @@ public class ExchangeRateUpdaterService(
         {
             // Better to use a static or injected HttpClient instance in production
             using var client = new HttpClient();
-            
+
             var response = await client.GetStringAsync(requestUrl);
             var parsedResponse = JsonDocument.Parse(response);
 
@@ -115,7 +112,7 @@ public class ExchangeRateUpdaterService(
         catch (HttpRequestException ex)
         {
             Console.WriteLine($"Error fetching fiat rates: {ex.Message}");
-            
+
         }
     }
 }
