@@ -16,6 +16,12 @@ namespace background_jobs.Controllers
             return Ok(await coinDataService.GetCoinsAsync());
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<List<CoinDataDto>>> FetchCoinById(Guid id)
+        {
+            return Ok(await coinDataService.FetchCoinById(id));
+        }
+
         [HttpPost("create-coin")]
         public async Task<ActionResult<CoinDataDto>> CreateCoinAsync([FromBody] CreateCoinDto createCoinDto)
         {
@@ -55,6 +61,20 @@ namespace background_jobs.Controllers
             try
             {
                 return Ok(await coinDataService.ConvertCoinToCoinAsync(convertCoinDto2));
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<CoinDataDto>> UpdateCoinAsync(Guid id, [FromBody] CreateCoinDto updateCoinDto)
+        {
+            try
+            {
+                return Ok(await coinDataService.UpdateCoinAsync(id, updateCoinDto));
             }
             catch (Exception e)
             {

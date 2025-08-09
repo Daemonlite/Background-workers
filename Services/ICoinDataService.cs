@@ -13,6 +13,9 @@ namespace background_jobs.Services
 
         Task<ConversionCoinResponseDto> ConvertCoinToCoinAsync(ConvertCoinDto2 convertCoinDto2);
 
+        Task<List<CoinDataDto>> FetchCoinById (Guid id);
+
+        Task<CoinDataDto> UpdateCoinAsync(Guid id, CreateCoinDto updateCoinDto);
         Task<bool> DeleteCoinAsync(Guid id);
         
     }

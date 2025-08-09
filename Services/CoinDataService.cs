@@ -16,7 +16,9 @@ namespace background_jobs.Services
             Console.WriteLine($"Exchange rate for Lumens is {lumenPrice}");
 
             return await context.Coins
+                .OrderBy(x => x.Name)
                 .Select(x => new CoinDataDto
+            
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -26,11 +28,29 @@ namespace background_jobs.Services
                 }).ToListAsync();
 
         }
+
+        public async Task<List<CoinDataDto>> FetchCoinById(Guid id)
+        {
+            return await context.Coins
+                .Where(x => x.Id == id)
+                .OrderBy(x => x.Name)
+                .Select(x => new CoinDataDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Symbol = x.Symbol,
+                    Price = x.Price,
+                    LastUpdated = x.LastUpdated
+                }).ToListAsync();
+        }
         public async Task<ConversionCoinResponseDto> ConvertCoinToCoinAsync(ConvertCoinDto2 convertCoinDto2)
         {
             // 1. Get rates from cache (individual keys)
             var fromRateStr = await cache.CacheGetAsync(convertCoinDto2.FromCryptoSymbol.ToLower());
+            Console.WriteLine($"From rate str: {fromRateStr}");
             var toRateStr = await cache.CacheGetAsync(convertCoinDto2.ToCryptoSymbol.ToLower());
+
+            Console.WriteLine($"To rate str: {toRateStr}");
 
             if (fromRateStr == null || toRateStr == null)
             {
@@ -45,31 +65,25 @@ namespace background_jobs.Services
             }
 
             // 3. Convert directly using USD rates
-            decimal exchangeRate = fromRate / toRate;
-            decimal convertedAmount = convertCoinDto2.Amount * exchangeRate;
+            decimal convertedAmount = convertCoinDto2.Amount * fromRate / toRate;
 
             // 4. Calculate fiat (USD) value of original amount
             decimal fiatValue = convertCoinDto2.Amount * fromRate;
-
-            // 5. Get coin names (optional - could be cached separately)
-            var fromCoin = await context.Coins.FirstOrDefaultAsync(x => x.Symbol == convertCoinDto2.FromCryptoSymbol);
-            var toCoin = await context.Coins.FirstOrDefaultAsync(x => x.Symbol == convertCoinDto2.ToCryptoSymbol);
 
             return new ConversionCoinResponseDto
             {
                 FromCoin = new CoinDto
                 {
-                    Name = fromCoin?.Name ?? convertCoinDto2.FromCryptoSymbol.ToUpper(),
+                    Name = convertCoinDto2.FromCryptoSymbol.ToUpper(),
                     Symbol = convertCoinDto2.FromCryptoSymbol
                 },
                 ToCoin = new CoinDto
                 {
-                    Name = toCoin?.Name ?? convertCoinDto2.ToCryptoSymbol.ToUpper(),
+                    Name = convertCoinDto2.ToCryptoSymbol.ToUpper(),
                     Symbol = convertCoinDto2.ToCryptoSymbol
                 },
                 Amount = convertCoinDto2.Amount,
                 ConvertedAmount = convertedAmount,
-                ExchangeRate = exchangeRate, // 1 FROM = X TO
                 FiatValue = Math.Round(fiatValue, 2)
             };
         }
@@ -133,6 +147,24 @@ namespace background_jobs.Services
                     LastUpdated = DateTime.Now
                 };
                 await context.Coins.AddAsync(coin);
+                await context.SaveChangesAsync();
+                return new CoinDataDto { Id = coin.Id, Name = coin.Name, Symbol = coin.Symbol, Price = coin.Price, LastUpdated = coin.LastUpdated };
+            }
+        }
+
+        public async Task<CoinDataDto> UpdateCoinAsync(Guid id, CreateCoinDto updateCoinDto)
+        {
+            var coin = await context.Coins.FirstOrDefaultAsync(x => x.Id == id);
+            if (coin == null)
+            {
+                throw new Exception($"Coin with id {id} not found.");
+            }
+            else
+            {
+                coin.Name = updateCoinDto.Name;
+                coin.Symbol = updateCoinDto.Symbol;
+                coin.Price = updateCoinDto.Price;
+                coin.LastUpdated = DateTime.Now;
                 await context.SaveChangesAsync();
                 return new CoinDataDto { Id = coin.Id, Name = coin.Name, Symbol = coin.Symbol, Price = coin.Price, LastUpdated = coin.LastUpdated };
             }

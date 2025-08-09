@@ -64,8 +64,6 @@ namespace background_jobs.models
 
         public decimal Amount { get; set; }
         public decimal ConvertedAmount { get; set; }
-        public decimal ExchangeRate { get; set; }
-
         public decimal FiatValue { get; set; }
     }
 
