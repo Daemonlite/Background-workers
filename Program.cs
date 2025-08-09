@@ -35,6 +35,28 @@ builder.Services.AddStackExchangeRedisCache(options =>
     };
 });
 
+//add cors
+builder.Services.AddCors(options =>
+{
+    // Define a specific policy
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173") 
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+
+    // Optionally, define a more permissive default policy (use with caution)
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddSingleton<RedisCacheService>();
 builder.Services.AddScoped<ICoinDataService, CoinDataService>();
 builder.Services.AddHostedService<ExchangeRateUpdaterService>();
@@ -55,7 +77,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-
+app.UseCors("AllowSpecificOrigin");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.MapControllers();

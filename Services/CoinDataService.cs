@@ -138,8 +138,19 @@ namespace background_jobs.Services
             }
         }
 
-
-
-
+        public async Task<bool> DeleteCoinAsync(Guid id)
+        {
+            var coin = await context.Coins.FirstOrDefaultAsync(x => x.Id == id);
+            if (coin == null)
+            {
+                throw new Exception($"Coin with id {id} not found.");
+            }
+            else
+            {
+                context.Coins.Remove(coin);
+                await context.SaveChangesAsync();
+                return true;
+            }
+        }
     }
 }

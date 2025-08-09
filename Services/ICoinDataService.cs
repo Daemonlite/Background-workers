@@ -12,6 +12,8 @@ namespace background_jobs.Services
         Task<ConversionFiatResponseDto> ConvertCoinToFiatCurrencyAsync(ConvertCoinDto convertCoinDto);
 
         Task<ConversionCoinResponseDto> ConvertCoinToCoinAsync(ConvertCoinDto2 convertCoinDto2);
+
+        Task<bool> DeleteCoinAsync(Guid id);
         
     }
 }

@@ -1,9 +1,11 @@
 using background_jobs.Services;
 using Microsoft.AspNetCore.Mvc;
 using background_jobs.models;
+using Microsoft.AspNetCore.Cors;
 
 namespace background_jobs.Controllers
 {
+    [EnableCors("AllowSpecificOrigin")]
     [Route("api/[controller]")]
     [ApiController]
     public class CoinDataController(ICoinDataService coinDataService) : ControllerBase
@@ -46,7 +48,7 @@ namespace background_jobs.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
-        
+
         [HttpPost("convert-coin-to-coin")]
         public async Task<ActionResult<ConversionCoinResponseDto>> ConvertCoinToCoinAsync([FromBody] ConvertCoinDto2 convertCoinDto2)
         {
@@ -57,6 +59,20 @@ namespace background_jobs.Controllers
             catch (Exception e)
             {
 
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<bool>> DeleteCoinAsync(Guid id)
+        {
+            try
+            {
+                return Ok(await coinDataService.DeleteCoinAsync(id));
+            }
+            catch (Exception e)
+            {
+                
                 return BadRequest(new { message = e.Message });
             }
         }
